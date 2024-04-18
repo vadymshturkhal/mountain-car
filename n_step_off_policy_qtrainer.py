@@ -87,7 +87,7 @@ class NStepOffPolicyQTrainer:
                 pi = probabilities[action_index]
 
                 # B
-                b = epsilon * (1 / SNAKE_ACTION_LENGTH) + (1 - epsilon)
+                b = epsilon * (1 / CAR_ACTION_LENGTH) + (1 - epsilon)
 
                 ratios.append(pi/b)
 
