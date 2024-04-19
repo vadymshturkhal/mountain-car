@@ -11,6 +11,7 @@ class TrainAgent:
         self.car_agent =  NStepOffPolicyQLearning(*[is_load_weights, CAR_WEIGHTS_FILENAME, epochs, is_load_n_games])
         self.epochs = epochs
         self._is_rendering = is_rendering
+        self._car_game_reward = 0
         self._observations = []
         self._actions = []
         self._rewards = []
@@ -24,7 +25,7 @@ class TrainAgent:
 
     def _train_single_game(self):
         max_reward = float('-inf')
-        prev_observation = self.env.reset()
+        prev_observation = self.env.reset()[0]
 
         while True:
             if self._is_rendering:
@@ -32,7 +33,6 @@ class TrainAgent:
 
             action = self.car_agent.get_action(prev_observation)
             action = np.argmax(action)
-            print(action)
 
             # Step through the environment and get five return values
             observation, reward, terminated, truncated, info = self.env.step(action)
@@ -44,10 +44,11 @@ class TrainAgent:
             self._car_game_reward += reward
             self.car_agent.last_reward = reward
 
+            prev_observation = observation
             done = terminated or truncated
 
             self._dones.append(float(done))
-            loss = self.car_agent.train_step(self._states, self._actions, self._rewards, self._dones)
+            loss = self.car_agent.train_step(self._observations, self._actions, self._rewards, self._dones)
             self._losses.append(loss)
 
             if done:
@@ -66,6 +67,7 @@ class TrainAgent:
                 break
 
     def _clear_game_data(self):
+        self._car_game_reward = 0
         self._observations.clear()
         self._actions.clear()
         self._rewards.clear()
