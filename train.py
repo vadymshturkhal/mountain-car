@@ -6,10 +6,11 @@ from n_step_off_policy_agent import NStepOffPolicyQLearning
 
 
 class TrainAgent:
-    def __init__(self, epochs):
+    def __init__(self, epochs, is_rendering):
         self.env = gym.make('MountainCar-v0', render_mode="human")
         self.car_agent =  NStepOffPolicyQLearning(*[is_load_weights, CAR_WEIGHTS_FILENAME, epochs, is_load_n_games])
         self.epochs = epochs
+        self._is_rendering = is_rendering
         self._observations = []
         self._actions = []
         self._rewards = []
@@ -26,6 +27,9 @@ class TrainAgent:
         prev_observation = self.env.reset()
 
         while True:
+            if self._is_rendering:
+                self.env.render()
+
             action = self.car_agent.get_action(prev_observation)
             action = np.argmax(action)
             print(action)
@@ -70,6 +74,8 @@ class TrainAgent:
 
 
 epochs = 10
+is_rendering = True
 is_load_weights = False
 is_load_n_games = False
-train_agent = TrainAgent(epochs)
+train_agent = TrainAgent(epochs, is_rendering)
+train_agent.train()
