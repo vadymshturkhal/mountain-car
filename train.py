@@ -1,7 +1,7 @@
 import gymnasium as gym
 import numpy as np
-from game_settings import CAR_WEIGHTS_FILENAME
 
+from game_settings import CAR_WEIGHTS_FILENAME
 from n_step_off_policy_agent import NStepOffPolicyQLearning
 
 
@@ -27,12 +27,16 @@ class TrainAgent:
         for _ in range(self.epochs):
             self._train_single_game()
             self._clear_game_data()
+            print(_)
 
     def _train_single_game(self):
         max_reward = float('-inf')
         prev_observation = self.env.reset()[0]
         max_x = float('-inf')
+        min_x = float('inf')
+        steps = 0
         while True:
+            steps += 1
             action = self.car_agent.get_action(prev_observation)
             action = np.argmax(action)
 
@@ -42,6 +46,10 @@ class TrainAgent:
             if prev_observation[0] > max_x:
                 max_x = prev_observation[0]
                 reward = 1
+            
+            if prev_observation[0] < min_x:
+                min_x = prev_observation[0]
+                reward = 0.5
 
             self._observations.append(prev_observation)
             self._actions.append(action)
@@ -51,14 +59,15 @@ class TrainAgent:
             self.car_agent.last_reward = reward
 
             prev_observation = observation
-            done = terminated or truncated
+            # done = terminated or truncated
+            done = terminated or steps == 1200
+            # print(reward)
 
             self._dones.append(float(done))
             loss = self.car_agent.train_step(self._observations, self._actions, self._rewards, self._dones)
             self._losses.append(loss)
 
             if done:
-                print('done')
                 self._dones.append(1)
 
                 self.car_agent.n_games += 1
@@ -71,6 +80,7 @@ class TrainAgent:
                 average_loss = sum(self._losses) / len(self._losses)
                 print(average_loss, self.car_agent.epsilon)
                 break
+        print(steps)
 
     def _clear_game_data(self):
         self._car_game_reward = 0
@@ -81,12 +91,12 @@ class TrainAgent:
         self._losses.clear()
 
 
-epochs = 100
-# is_rendering = False
-# is_load_weights = False
-# is_load_n_games = False
-is_rendering = True
+epochs = 200
+is_rendering = False
 is_load_weights = False
 is_load_n_games = False
+# is_rendering = True
+# is_load_weights = True
+# is_load_n_games = True
 train_agent = TrainAgent(epochs, is_rendering)
 train_agent.train()
