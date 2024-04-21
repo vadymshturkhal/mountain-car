@@ -60,7 +60,7 @@ class TrainAgent:
 
             prev_observation = observation
             # done = terminated or truncated
-            done = terminated or steps == 1200
+            done = terminated or steps == 600
             # print(reward)
 
             self._dones.append(float(done))
@@ -78,9 +78,8 @@ class TrainAgent:
                     self.car_agent.model.save(epoch=self.car_agent.n_games, filename=CAR_WEIGHTS_FILENAME)
 
                 average_loss = sum(self._losses) / len(self._losses)
-                print(average_loss, self.car_agent.epsilon)
+                print(average_loss, self.car_agent.epsilon, end=' ')
                 break
-        print(steps)
 
     def _clear_game_data(self):
         self._car_game_reward = 0
@@ -91,7 +90,7 @@ class TrainAgent:
         self._losses.clear()
 
 
-epochs = 200
+epochs = 120
 is_rendering = False
 is_load_weights = False
 is_load_n_games = False
