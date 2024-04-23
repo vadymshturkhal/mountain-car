@@ -59,15 +59,9 @@ class NStepOffPolicyQTrainer:
         return loss.item()
 
     def train_episode(self, states: list, actions: list, rewards: list, dones: int):
-        if len(states) < BATCH_SIZE:
-            start_index = 0
-            last_index = len(states)
-        else:
-            start_index = random.randint(0, len(states) - BATCH_SIZE)
-            last_index = start_index + BATCH_SIZE
-
-        for relative_last_index in range(start_index + self._n_steps, last_index):
-            self.train_n_steps(states, actions, rewards, dones, last_index=relative_last_index)
+        for _ in range(BATCH_SIZE):
+            last_index = random.randint(self._n_steps, len(states)- self._n_steps)
+            self.train_n_steps(states, actions, rewards, dones, last_index=last_index)
 
     def _calculate_rewards(self, rewards, last_index=None):
         rewards_gamma_sum = 0
