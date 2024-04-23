@@ -93,14 +93,14 @@ class TrainAgent:
         self._losses.clear()
 
 
-epochs = 120
-MAX_EPOCH_STEPS = 400
+epochs = 100
+MAX_EPOCH_STEPS = 1200
 
-is_rendering = False
-is_load_weights = False
-is_load_n_games = False
-# is_rendering = True
-# is_load_weights = True
-# is_load_n_games = True
+# is_rendering = False
+# is_load_weights = False
+# is_load_n_games = False
+is_rendering = True
+is_load_weights = True
+is_load_n_games = True
 train_agent = TrainAgent(epochs, is_rendering)
 train_agent.train()
