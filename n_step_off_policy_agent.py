@@ -42,8 +42,7 @@ class NStepOffPolicyQLearning:
 
     # Update the estimates of action values
     def train_episode(self, states: list, actions: list, rewards: list, dones: list):
-        for i in range(self.n_steps, len(states) + 1):
-            self.train_n_steps(states, actions, rewards, dones, last_index=i)
+        self.trainer.train_episode(states, actions, rewards, dones)
 
     def get_action(self, state, is_train=True) -> np.array:
         """

@@ -1,7 +1,7 @@
 import gymnasium as gym
 import numpy as np
 
-from game_settings import CAR_WEIGHTS_FILENAME
+from game_settings import CAR_WEIGHTS_FILENAME, REWARD_MOVE_LEFT, REWARD_MOVE_RIGHT, REWARD_WIN
 from n_step_off_policy_agent import NStepOffPolicyQLearning
 
 
@@ -45,11 +45,14 @@ class TrainAgent:
 
             if prev_observation[0] > max_x:
                 max_x = prev_observation[0]
-                reward = 1
+                reward = REWARD_MOVE_RIGHT
             
             if prev_observation[0] < min_x:
                 min_x = prev_observation[0]
-                reward = 0.5
+                reward = REWARD_MOVE_LEFT
+
+            if terminated:
+                reward = REWARD_WIN
 
             self._observations.append(prev_observation)
             self._actions.append(action)
@@ -60,7 +63,7 @@ class TrainAgent:
 
             prev_observation = observation
             # done = terminated or truncated
-            done = terminated or steps == 600
+            done = terminated or steps == MAX_EPOCH_STEPS
             # print(reward)
 
             self._dones.append(float(done))
@@ -68,7 +71,7 @@ class TrainAgent:
             self._losses.append(loss)
 
             if done:
-                self._dones.append(1)
+                self.car_agent.train_episode(self._observations, self._actions, self._rewards, self._dones)
 
                 self.car_agent.n_games += 1
 
@@ -78,7 +81,7 @@ class TrainAgent:
                     self.car_agent.model.save(epoch=self.car_agent.n_games, filename=CAR_WEIGHTS_FILENAME)
 
                 average_loss = sum(self._losses) / len(self._losses)
-                print(average_loss, self.car_agent.epsilon, end=' ')
+                print(steps, average_loss, self.car_agent.epsilon, end=' ')
                 break
 
     def _clear_game_data(self):
@@ -91,6 +94,8 @@ class TrainAgent:
 
 
 epochs = 120
+MAX_EPOCH_STEPS = 400
+
 is_rendering = False
 is_load_weights = False
 is_load_n_games = False

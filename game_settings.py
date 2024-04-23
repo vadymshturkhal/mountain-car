@@ -7,7 +7,7 @@ SCORE_DATA_FILENAME = './data/latest.csv'
 CAR_SPEED = 0.000004
 
 # Planning
-BATCH_SIZE = 1024
+BATCH_SIZE = 256
 
 # Train
 CAR_ACTION_LENGTH = 3

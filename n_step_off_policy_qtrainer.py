@@ -1,11 +1,12 @@
 from functools import reduce
 import operator
+import random
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from game_settings import CAR_ACTION_LENGTH, WEIGHT_DECAY
+from game_settings import CAR_ACTION_LENGTH, WEIGHT_DECAY, BATCH_SIZE
 
 
 class NStepOffPolicyQTrainer:
@@ -57,8 +58,16 @@ class NStepOffPolicyQTrainer:
         self._optimizer.step()
         return loss.item()
 
-    def train_episode(self):
-        pass
+    def train_episode(self, states: list, actions: list, rewards: list, dones: int):
+        if len(states) < BATCH_SIZE:
+            start_index = 0
+            last_index = len(states)
+        else:
+            start_index = random.randint(0, len(states) - BATCH_SIZE)
+            last_index = start_index + BATCH_SIZE
+
+        for relative_last_index in range(start_index + self._n_steps, last_index):
+            self.train_n_steps(states, actions, rewards, dones, last_index=relative_last_index)
 
     def _calculate_rewards(self, rewards, last_index=None):
         rewards_gamma_sum = 0
