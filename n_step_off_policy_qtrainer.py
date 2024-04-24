@@ -60,7 +60,7 @@ class NStepOffPolicyQTrainer:
 
     def train_episode(self, states: list, actions: list, rewards: list, dones: int):
         for _ in range(BATCH_SIZE):
-            last_index = random.randint(self._n_steps, len(states)- self._n_steps)
+            last_index = random.randint(self._n_steps, len(states))
             self.train_n_steps(states, actions, rewards, dones, last_index=last_index)
 
     def _calculate_rewards(self, rewards, last_index=None):
