@@ -4,16 +4,14 @@ import numpy as np
 from model import Linear_QNet
 from n_step_off_policy_qtrainer import NStepOffPolicyQTrainer
 
-from game_settings import LR, CAR_ACTION_LENGTH, TRAINER_STEPS
+from game_settings import CAR_ACTION_LENGTH, TRAINER_STEPS, CAR_MIN_EPSILON, CAR_MAX_EPSILON
 from game_settings import CAR_INPUT_LAYER_SIZE, CAR_HIDDEN_LAYER_SIZE1, CAR_HIDDEN_LAYER_SIZE2, CAR_OUTPUT_LAYER_SIZE
-from game_settings import CAR_GAMMA, CAR_MIN_EPSILON, CAR_MAX_EPSILON
 
 class NStepOffPolicyQLearning:
     def __init__(self, is_load_weights=False, weights_filename=None, epochs=100, is_load_n_games=True, n_steps=TRAINER_STEPS):
         self.epsilon = CAR_MAX_EPSILON
         self.epochs = epochs
 
-        self.gamma = CAR_GAMMA
         self.n_steps = n_steps
 
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -30,7 +28,7 @@ class NStepOffPolicyQLearning:
         else:
             self.n_games = 0
 
-        self.trainer = NStepOffPolicyQTrainer(self.model, lr=LR, gamma=self.gamma, n_steps=n_steps)
+        self.trainer = NStepOffPolicyQTrainer(self.model, n_steps=n_steps, epochs=epochs)
     
     def train_step(self, states: list, actions: list, rewards: list, dones: list, last_index=0):
         loss = self.trainer.train_n_steps(states, actions, rewards, dones, last_index=last_index, epsilon=self.epsilon)

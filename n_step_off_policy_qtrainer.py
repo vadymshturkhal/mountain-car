@@ -7,17 +7,18 @@ import torch.optim as optim
 import torch.nn.functional as F
 import numpy as np
 
-from game_settings import CAR_ACTION_LENGTH, WEIGHT_DECAY, BATCH_SIZE
+from game_settings import CAR_ACTION_LENGTH, CAR_MAX_ALPHA, CAR_MIN_ALPHA, CAR_GAMMA, WEIGHT_DECAY, BATCH_SIZE
 
 
 class NStepOffPolicyQTrainer:
-    def __init__(self, model, lr, gamma, n_steps=0):
-        self._alpha = lr
-        self._gamma = gamma
+    def __init__(self, model, n_steps=0, epochs=1):
+        self._alpha = CAR_MAX_ALPHA
+        self._gamma = CAR_GAMMA
         self._model = model
-        self._optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=WEIGHT_DECAY)
+        self._optimizer = optim.Adam(model.parameters(), lr=CAR_MAX_ALPHA, weight_decay=WEIGHT_DECAY)
         self._criterion = nn.SmoothL1Loss()
         self._n_steps = n_steps
+        self._epochs = epochs
 
     def train_n_steps(self, states: list, actions: list, rewards: list, dones: int, last_index=0, epsilon=1):
         if len(states) < 2:
@@ -57,12 +58,14 @@ class NStepOffPolicyQTrainer:
         loss.backward()
 
         self._optimizer.step()
+        self._update_alpha_linear()
         return loss.item()
 
     def train_episode(self, states: list, actions: list, rewards: list, dones: int):
         for _ in range(BATCH_SIZE):
             last_index = random.randint(self._n_steps, len(states))
             self.train_n_steps(states, actions, rewards, dones, last_index=last_index)
+        print('alpha =', self._alpha)
 
     def _calculate_rewards(self, rewards, last_index=None):
         rewards_gamma_sum = 0
@@ -98,3 +101,24 @@ class NStepOffPolicyQTrainer:
         # Using reduce with operator.mul
         ratios_multiplied = reduce(operator.mul, ratios)
         return ratios_multiplied
+
+    def _update_alpha_linear(self):
+        """
+        Update the epsilon value linearly from start_epsilon to end_epsilon over total_games.
+        
+        Parameters:
+        - current_game: The current game number (1 to total_games).
+        - start_epsilon: The starting value of epsilon at game 1.
+        - end_epsilon: The final value of epsilon at game total_games.
+        - total_games: The total number of games over which epsilon will decay.
+        
+        Returns:
+        - Updated epsilon value for the current game.
+        """
+
+        # Calculate the amount of decay per game
+        decay_per_game = (CAR_MAX_ALPHA - CAR_MIN_ALPHA) / (self._epochs)
+        
+        # Update epsilon linearly based on the current game number
+        new_alpha = self._alpha - decay_per_game
+        self._alpha = new_alpha
