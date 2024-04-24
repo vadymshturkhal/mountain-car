@@ -35,6 +35,8 @@ class TrainAgent:
         max_x = float('-inf')
         min_x = float('inf')
         steps = 0
+        start_right_reward = -0.45
+        start_left_reward = -0.6
         while True:
             steps += 1
             action = self.car_agent.get_action(prev_observation)
@@ -43,13 +45,19 @@ class TrainAgent:
             # Step through the environment and get five return values
             observation, reward, terminated, truncated, info = self.env.step(action)
 
+            # Save greatest height
             if prev_observation[0] > max_x:
                 max_x = prev_observation[0]
-                reward = REWARD_MOVE_RIGHT
             
-            if prev_observation[0] < min_x:
-                min_x = prev_observation[0]
-                reward = REWARD_MOVE_LEFT
+            # Rewards
+            if prev_observation[0] > start_right_reward:
+                difference = abs(start_right_reward - prev_observation[0])
+                reward = REWARD_MOVE_RIGHT + difference
+            elif prev_observation[0] < start_left_reward:
+                difference = abs(start_left_reward - prev_observation[0])
+                reward = REWARD_MOVE_LEFT + difference
+            else:
+                reward = -1
 
             if terminated:
                 reward = REWARD_WIN
@@ -65,6 +73,7 @@ class TrainAgent:
             # done = terminated or truncated
             done = terminated or steps == MAX_EPOCH_STEPS
             # print(reward)
+            # print(observation)
 
             self._dones.append(float(done))
             loss = self.car_agent.train_step(self._observations, self._actions, self._rewards, self._dones)
@@ -76,7 +85,9 @@ class TrainAgent:
                 self.car_agent.n_games += 1
 
                 # Save snake model
-                if self._car_game_reward >= max_reward:
+                # if self._car_game_reward >= max_reward:
+                if max_x > -0.25:
+                    print(f'{max_x = }, saved model')
                     max_reward = self._car_game_reward
                     self.car_agent.model.save(epoch=self.car_agent.n_games, filename=CAR_WEIGHTS_FILENAME)
 
@@ -94,13 +105,13 @@ class TrainAgent:
 
 
 epochs = 100
-MAX_EPOCH_STEPS = 1200
+MAX_EPOCH_STEPS = 600
 
-# is_rendering = False
-# is_load_weights = False
-# is_load_n_games = False
 is_rendering = True
-is_load_weights = True
-is_load_n_games = True
+is_load_weights = False
+is_load_n_games = False
+# is_rendering = True
+# is_load_weights = True
+# is_load_n_games = True
 train_agent = TrainAgent(epochs, is_rendering)
 train_agent.train()

@@ -6,11 +6,11 @@ from n_step_off_policy_qtrainer import NStepOffPolicyQTrainer
 
 from game_settings import LR, CAR_ACTION_LENGTH, TRAINER_STEPS
 from game_settings import CAR_INPUT_LAYER_SIZE, CAR_HIDDEN_LAYER_SIZE1, CAR_HIDDEN_LAYER_SIZE2, CAR_OUTPUT_LAYER_SIZE
-from game_settings import CAR_GAMMA, CAR_MIN_EPSILON, CAR_START_EPSILON
+from game_settings import CAR_GAMMA, CAR_MIN_EPSILON, CAR_MAX_EPSILON
 
 class NStepOffPolicyQLearning:
     def __init__(self, is_load_weights=False, weights_filename=None, epochs=100, is_load_n_games=True, n_steps=TRAINER_STEPS):
-        self.epsilon = 1
+        self.epsilon = CAR_MAX_EPSILON
         self.epochs = epochs
 
         self.gamma = CAR_GAMMA
@@ -94,10 +94,10 @@ class NStepOffPolicyQLearning:
         """
 
         # Calculate the amount of decay per game
-        decay_per_game = (CAR_START_EPSILON - CAR_MIN_EPSILON) / (self.epochs)
+        decay_per_game = (CAR_MAX_EPSILON - CAR_MIN_EPSILON) / (self.epochs)
         
         # Update epsilon linearly based on the current game number
-        new_epsilon = CAR_START_EPSILON - (decay_per_game * (self.n_games))
+        new_epsilon = CAR_MAX_EPSILON - (decay_per_game * (self.n_games))
         
         # Ensure epsilon does not go below the end_epsilon
         self.epsilon = new_epsilon
