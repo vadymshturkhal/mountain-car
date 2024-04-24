@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+import numpy as np
 
 from game_settings import CAR_ACTION_LENGTH, WEIGHT_DECAY, BATCH_SIZE
 
@@ -30,8 +31,8 @@ class NStepOffPolicyQTrainer:
         if last_index == 0:
             last_index = len(states)
 
-        states = torch.tensor(states, dtype=torch.float)
-        actions = torch.tensor(actions, dtype=torch.long)
+        states = torch.tensor(np.array(states), dtype=torch.float)
+        actions = torch.tensor(np.array(actions), dtype=torch.long)
 
         # Rho
         ratio = self._importance_sampling_ratio(states, epsilon)
