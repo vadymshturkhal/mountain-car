@@ -1,1 +1,2 @@
-# mountain-car
+## Dependencies
+gymnasium, gymnasium[classic-control], torch
